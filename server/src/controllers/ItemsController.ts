@@ -1,22 +1,16 @@
 import { Request, Response } from "express"
 import knex from "../database/connection"
 class ItemsController {
-  index(req: Request, res: Response) {
-    knex("items")
-      .then((result) => {
-        const serializedItems = result.map(({ id, title, image }) => {
-          return {
-            id,
-            title,
-            image_url: `http://127.0.0.1:3333/uploads/${image}`,
-          }
-        })
-        return res.json(serializedItems)
-      })
-      .catch((error) => {
-        console.log(error)
-        return res.json({ error: true })
-      })
+  async index(req: Request, res: Response) {
+    const items = await knex("items")
+    const serializedItems = items.map(({ id, title, image }) => {
+      return {
+        id,
+        title,
+        image_url: `${req.protocol}://${req.get("host")}/uploads/${image}`,
+      }
+    })
+    return res.json(serializedItems)
   }
 }
 export default ItemsController

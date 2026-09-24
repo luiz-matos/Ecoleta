@@ -145,6 +145,12 @@
   margin-bottom: 24px;
 }
 
+#page-create-point form .form-error {
+  margin-top: 40px;
+  color: #e83f5b;
+  text-align: right;
+}
+
 #page-create-point form button {
   width: 260px;
   height: 56px;
@@ -158,6 +164,10 @@
   margin-top: 40px;
   transition: background-color 0.2s;
   cursor: pointer;
+}
+
+#page-create-point form .form-error + button {
+  margin-top: 16px;
 }
 
 #page-create-point form button:hover {

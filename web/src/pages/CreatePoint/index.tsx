@@ -30,16 +30,24 @@ interface IBGECity {
   nome: string
 }
 
-interface MapControllerProps {
+interface MapView {
   center: [number, number]
+  zoom: number
+}
+
+// Centro do Brasil, usado até a geolocalização responder ou quando ela é negada
+const DEFAULT_MAP_VIEW: MapView = { center: [-14.235, -51.9253], zoom: 4 }
+
+interface MapControllerProps {
+  view: MapView
   onClick: (event: LeafletMouseEvent) => void
 }
 
-const MapController = ({ center, onClick }: MapControllerProps) => {
+const MapController = ({ view, onClick }: MapControllerProps) => {
   const map = useMapEvents({ click: onClick })
   useEffect(() => {
-    map.setView(center)
-  }, [map, center])
+    map.setView(view.center, view.zoom)
+  }, [map, view])
   return null
 }
 
@@ -50,20 +58,17 @@ const CreatePoint = () => {
   const [selectedUF, setSelectedUF] = useState("0")
   const [cities, setCities] = useState<string[]>([])
   const [selectedCity, setSelectedCity] = useState("0")
-  const [selectedPosition, setSelectedPosition] = useState<[number, number]>([
-    0,
-    0,
-  ])
-  const [initialPosition, setInitialPosition] = useState<[number, number]>([
-    0,
-    0,
-  ])
+  const [selectedPosition, setSelectedPosition] = useState<
+    [number, number] | null
+  >(null)
+  const [mapView, setMapView] = useState<MapView>(DEFAULT_MAP_VIEW)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     whatsapp: "",
   })
   const [selectedItems, setSelectedItems] = useState<number[]>([])
+  const [errorMessage, setErrorMessage] = useState("")
 
   useEffect(() => {
     api
@@ -100,28 +105,35 @@ const CreatePoint = () => {
     if (selectedUF === "0") {
       return
     }
+    let ignore = false
     axios
       .get<IBGECity[]>(
         `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUF}/municipios?orderBy=nome`
       )
       .then((response) => {
+        if (ignore) return
         const cityNames = response.data.map((city) => city.nome)
         setCities(cityNames)
       })
       .catch((error) => {
         console.log(error)
       })
+    return () => {
+      ignore = true
+    }
   }, [selectedUF])
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords
-      setInitialPosition([latitude, longitude])
+      setMapView({ center: [latitude, longitude], zoom: 15 })
     })
   }, [])
 
   function hundleSelectUF(event: ChangeEvent<HTMLSelectElement>) {
     setSelectedUF(event.target.value)
+    setSelectedCity("0")
+    setCities([])
   }
 
   function hundleSelectCity(event: ChangeEvent<HTMLSelectElement>) {
@@ -148,8 +160,22 @@ const CreatePoint = () => {
     }
   }
 
+  function validateForm() {
+    if (selectedUF === "0") return "Selecione o estado."
+    if (selectedCity === "0") return "Selecione a cidade."
+    if (!selectedPosition) return "Marque o endereço no mapa."
+    if (selectedItems.length === 0)
+      return "Selecione ao menos um item de coleta."
+    return ""
+  }
+
   function hundleSubmit(event: FormEvent) {
     event.preventDefault()
+    const validationError = validateForm()
+    setErrorMessage(validationError)
+    if (validationError || !selectedPosition) {
+      return
+    }
     const { name, email, whatsapp } = formData
     const uf = selectedUF
     const city = selectedCity
@@ -173,6 +199,7 @@ const CreatePoint = () => {
       })
       .catch((error) => {
         console.log(error)
+        setErrorMessage("Não foi possível cadastrar o ponto. Tente novamente.")
       })
   }
 
@@ -199,6 +226,7 @@ const CreatePoint = () => {
               type="text"
               name="name"
               id="name"
+              required
               onChange={hundleInputChange}
             />
           </div>
@@ -209,6 +237,7 @@ const CreatePoint = () => {
                 type="email"
                 name="email"
                 id="email"
+                required
                 onChange={hundleInputChange}
               />
             </div>
@@ -218,6 +247,7 @@ const CreatePoint = () => {
                 type="text"
                 name="whatsapp"
                 id="whatsapp"
+                required
                 onChange={hundleInputChange}
               />
             </div>
@@ -228,13 +258,13 @@ const CreatePoint = () => {
             <h2>Endereço</h2>
             <span>Selecione o endereço no mapa</span>
           </legend>
-          <MapContainer center={initialPosition} zoom={15}>
-            <MapController center={initialPosition} onClick={hundleMapClick} />
+          <MapContainer center={mapView.center} zoom={mapView.zoom}>
+            <MapController view={mapView} onClick={hundleMapClick} />
             <TileLayer
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={selectedPosition} />
+            {selectedPosition && <Marker position={selectedPosition} />}
           </MapContainer>
           <div className="field-group">
             <div className="field">
@@ -289,6 +319,7 @@ const CreatePoint = () => {
             ))}
           </ul>
         </fieldset>
+        {errorMessage && <p className="form-error">{errorMessage}</p>}
         <button type="submit">Cadastrar ponto de coleta</button>
       </form>
     </div>
