@@ -1,5 +1,32 @@
 import { Request, Response } from "express"
+import fs from "fs"
 import knex from "../database/connection"
+import uploadsUrl from "../utils/uploadsUrl"
+
+// No envio em multipart os campos chegam como texto
+function parsePointBody(body: Record<string, unknown>) {
+  const toNumber = (value: unknown) =>
+    typeof value === "string" && value.trim() !== "" ? Number(value) : value
+  return {
+    ...body,
+    latitude: toNumber(body.latitude),
+    longitude: toNumber(body.longitude),
+    items:
+      typeof body.items === "string"
+        ? body.items.split(",").map((item) => Number(item.trim()))
+        : body.items,
+  }
+}
+
+function serializePoint<T extends { image: string }>(req: Request, point: T) {
+  return { ...point, image_url: uploadsUrl(req, `points/${point.image}`) }
+}
+
+function removeUploadedFile(req: Request) {
+  if (req.file) {
+    fs.promises.unlink(req.file.path).catch(() => {})
+  }
+}
 
 function validatePoint(body: Record<string, unknown>) {
   const errors: string[] = []
@@ -16,9 +43,11 @@ function validatePoint(body: Record<string, unknown>) {
     errors.push("uf deve ter duas letras maiúsculas")
   if (
     typeof latitude !== "number" ||
+    !Number.isFinite(latitude) ||
     latitude < -90 ||
     latitude > 90 ||
     typeof longitude !== "number" ||
+    !Number.isFinite(longitude) ||
     longitude < -180 ||
     longitude > 180
   )
@@ -48,17 +77,23 @@ class PointController {
     if (city) query.where({ city: String(city) })
     if (uf) query.where({ uf: String(uf) })
     const points = await query
-    return res.json(points)
+    return res.json(points.map((point) => serializePoint(req, point)))
   }
   async create(req: Request, res: Response) {
-    const errors = validatePoint(req.body ?? {})
+    const body = parsePointBody(req.body ?? {})
+    const errors = validatePoint(body)
+    if (!req.file) errors.push("image é obrigatória")
     if (errors.length === 0) {
-      const existingItems = await knex("items").whereIn("id", req.body.items)
-      if (existingItems.length !== new Set(req.body.items).size) {
+      const existingItems = await knex("items").whereIn(
+        "id",
+        body.items as number[]
+      )
+      if (existingItems.length !== new Set(body.items as number[]).size) {
         errors.push("items contém item inexistente")
       }
     }
     if (errors.length > 0) {
+      removeUploadedFile(req)
       return res.status(400).json({ error: "Dados inválidos", details: errors })
     }
     const {
@@ -70,10 +105,9 @@ class PointController {
       city,
       uf,
       items,
-    } = req.body
+    } = body as Record<string, any>
     const point = {
-      image:
-        "https://images.unsplash.com/photo-1583258292688-d0213dc5a3a8?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+      image: req.file!.filename,
       name,
       email,
       whatsapp,
@@ -82,18 +116,24 @@ class PointController {
       city,
       uf,
     }
-    const id = await knex.transaction(async (transaction) => {
-      const [point_id] = await transaction("points").insert(point)
-      const pointItems = [...new Set<number>(items)].map((item_id) => {
-        return {
-          item_id,
-          point_id,
-        }
+    let id: number
+    try {
+      id = await knex.transaction(async (transaction) => {
+        const [point_id] = await transaction("points").insert(point)
+        const pointItems = [...new Set<number>(items)].map((item_id) => {
+          return {
+            item_id,
+            point_id,
+          }
+        })
+        await transaction("points_items").insert(pointItems)
+        return point_id
       })
-      await transaction("points_items").insert(pointItems)
-      return point_id
-    })
-    return res.status(201).json({ id, ...point })
+    } catch (error) {
+      removeUploadedFile(req)
+      throw error
+    }
+    return res.status(201).json(serializePoint(req, { id, ...point }))
   }
   async show(req: Request, res: Response) {
     const { id } = req.params
@@ -105,7 +145,7 @@ class PointController {
       .join("points_items", "items.id", "points_items.item_id")
       .where("points_items.point_id", point.id)
       .select("items.title")
-    return res.json({ point, pointItems })
+    return res.json({ point: serializePoint(req, point), pointItems })
   }
 }
 export default PointController
