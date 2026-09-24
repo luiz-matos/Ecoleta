@@ -9,7 +9,7 @@
     "knex:seed": "tsx node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run",
     "test": "vitest run"
   },
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "cors": "^2.8.6",
     "express": "^5.2.1",

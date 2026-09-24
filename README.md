@@ -177,3 +177,7 @@ As rotas `GET /points` e `GET /points/:id` foram feitas para o app mobile, que n
 - **Nomes corrigidos.** `hundle*` virou `handle*`, `persedItems` virou `parsedItems`, e a migration `02_creat_poinst_items` virou `02_create_points_items`.
 - **Código compartilhado entre as páginas.** Itens, UFs e cidades e a grade de itens viraram hooks e componentes usados pelo cadastro e pela busca.
 - **Mesmo resultado.** Conferi a organização com um roteiro de 25 verificações da API e 8 cenários do formulário, rodados antes e depois, com saídas idênticas. Esses cenários viraram os testes que estão hoje no repositório.
+
+## Licença
+
+MIT. Veja o arquivo [LICENSE](LICENSE).
