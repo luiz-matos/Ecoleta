@@ -83,7 +83,11 @@ const SearchPoints = () => {
 
   const mapView = useMemo<MapView>(() => {
     if (!points || points.length === 0) return DEFAULT_MAP_VIEW
-    return { center: [points[0].latitude, points[0].longitude], zoom: 13 }
+    const positions = points.map(
+      (point): [number, number] => [point.latitude, point.longitude]
+    )
+    if (positions.length === 1) return { center: positions[0], zoom: 15 }
+    return { center: positions[0], zoom: 13, bounds: positions }
   }, [points])
 
   function handleSelectLocation(uf: string, city: string) {

@@ -134,12 +134,19 @@
 
 #page-search-points .point-detail .close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
   border: 0;
-  background: transparent;
+  border-radius: 50%;
+  background: #fff;
   color: var(--title-color);
   cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #page-search-points .point-detail .close svg {
@@ -250,6 +257,10 @@
 
   #page-search-points .leaflet-container {
     height: 280px;
+  }
+
+  #page-search-points .point-detail {
+    padding-top: 56px;
   }
 
   #page-search-points .point-detail img {

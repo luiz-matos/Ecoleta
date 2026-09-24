@@ -6,17 +6,20 @@ export const leaflet = {
   mapCenters: [] as unknown[],
   markers: [] as { position: unknown; title?: string }[],
   setViewCalls: [] as unknown[][],
+  fitBoundsCalls: [] as unknown[][],
   click: undefined as ((event: unknown) => void) | undefined,
   reset() {
     this.mapCenters = []
     this.markers = []
     this.setViewCalls = []
+    this.fitBoundsCalls = []
     this.click = undefined
   },
 }
 
 const fakeMap = {
   setView: (...args: unknown[]) => leaflet.setViewCalls.push(args),
+  fitBounds: (...args: unknown[]) => leaflet.fitBoundsCalls.push(args),
 }
 
 export const reactLeafletMock = {

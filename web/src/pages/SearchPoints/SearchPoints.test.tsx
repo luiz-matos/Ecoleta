@@ -98,7 +98,10 @@ describe("SearchPoints", () => {
       "Mercado A",
       "Mercado B",
     ])
-    expect(leaflet.setViewCalls.at(-1)).toEqual([[-15.8, -47.9], 13])
+    expect(leaflet.fitBoundsCalls.at(-1)?.[0]).toEqual([
+      [-15.8, -47.9],
+      [-15.7, -47.8],
+    ])
   })
 
   test("filtra por item e avisa quando não há resultado", async () => {
