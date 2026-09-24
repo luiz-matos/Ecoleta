@@ -241,3 +241,70 @@
   background: #e1faec;
   border: 2px solid #34cb79;
 }
+
+@media (max-width: 1160px) {
+  #page-create-point {
+    padding: 0 30px;
+  }
+}
+
+@media (max-width: 760px) {
+  #page-create-point {
+    padding: 0 16px;
+  }
+
+  #page-create-point header {
+    margin-top: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  #page-create-point form {
+    margin: 32px auto;
+    padding: 32px 20px;
+  }
+
+  #page-create-point form h1 {
+    font-size: 28px;
+  }
+
+  #page-create-point form fieldset {
+    margin-top: 48px;
+  }
+
+  #page-create-point form legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  #page-create-point form .field-group {
+    flex-direction: column;
+  }
+
+  #page-create-point form .field-group .field + .field {
+    margin-left: 0;
+  }
+
+  #page-create-point form .leaflet-container {
+    height: 280px;
+  }
+
+  #page-create-point form .form-error {
+    text-align: left;
+  }
+
+  #page-create-point form button {
+    width: 100%;
+  }
+
+  #page-create-point .dropzone {
+    height: 200px;
+    margin-top: 32px;
+  }
+
+  .items-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
