@@ -83,6 +83,25 @@
   background: #2fb86e;
 }
 
+#page-home .content main a.secondary {
+  margin-top: 16px;
+  background: #fff;
+  border: 2px solid var(--primary-color);
+}
+
+#page-home .content main a.secondary span {
+  background: #e1faec;
+}
+
+#page-home .content main a.secondary span svg,
+#page-home .content main a.secondary strong {
+  color: var(--primary-color);
+}
+
+#page-home .content main a.secondary:hover {
+  background: #e1faec;
+}
+
 @media (max-width: 900px) {
   #page-home .content {
     align-items: center;

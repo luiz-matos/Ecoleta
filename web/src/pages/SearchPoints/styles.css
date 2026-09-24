@@ -1,0 +1,262 @@
+#page-search-points {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+#page-search-points header {
+  margin-top: 48px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#page-search-points header a {
+  color: var(--title-color);
+  font-weight: bold;
+  text-decoration: none;
+
+  display: flex;
+  align-items: center;
+}
+
+#page-search-points header a svg {
+  margin-right: 16px;
+  color: var(--primary-color);
+}
+
+#page-search-points main {
+  margin: 80px auto;
+  padding: 64px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+#page-search-points main h1 {
+  font-size: 36px;
+}
+
+#page-search-points .filters {
+  margin-top: 48px;
+}
+
+#page-search-points .filters h2 {
+  font-size: 24px;
+  margin-top: 16px;
+}
+
+#page-search-points .hint {
+  font-size: 14px;
+  margin: 8px 0 24px;
+}
+
+#page-search-points .field-group {
+  display: flex;
+}
+
+#page-search-points .field {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 24px;
+}
+
+#page-search-points .field + .field {
+  margin-left: 24px;
+}
+
+#page-search-points .field label {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+#page-search-points .field select {
+  appearance: none;
+  background: #f0f0f5;
+  border-radius: 8px;
+  border: 0;
+  padding: 16px 24px;
+  font-size: 16px;
+  color: var(--text-color);
+}
+
+#page-search-points .results {
+  margin-top: 48px;
+}
+
+#page-search-points .leaflet-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 8px;
+}
+
+#page-search-points .status {
+  margin-top: 24px;
+}
+
+#page-search-points .status.error {
+  color: #e83f5b;
+}
+
+#page-search-points .point-detail {
+  position: relative;
+  margin-top: 24px;
+  padding: 24px;
+  border-radius: 8px;
+  background: #f0f0f5;
+
+  display: flex;
+  gap: 24px;
+}
+
+#page-search-points .point-detail img {
+  width: 240px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+#page-search-points .point-detail h2 {
+  font-size: 24px;
+  padding-right: 32px;
+}
+
+#page-search-points .point-detail p {
+  margin-top: 8px;
+}
+
+#page-search-points .point-detail .point-items {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+#page-search-points .point-detail .close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: 0;
+  background: transparent;
+  color: var(--title-color);
+  cursor: pointer;
+}
+
+#page-search-points .point-detail .close svg {
+  width: 20px;
+  height: 20px;
+}
+
+#page-search-points .contacts {
+  margin-top: 16px;
+
+  display: flex;
+  gap: 16px;
+}
+
+#page-search-points .contacts a {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#page-search-points .points-list {
+  margin-top: 24px;
+  list-style: none;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+#page-search-points .points-list button {
+  width: 100%;
+  padding: 0 0 16px;
+  border: 2px solid #f0f0f5;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+}
+
+#page-search-points .points-list button:hover,
+#page-search-points .points-list button:focus-visible {
+  border-color: var(--primary-color);
+}
+
+#page-search-points .points-list img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+
+#page-search-points .points-list strong {
+  margin: 12px 16px 4px;
+  color: var(--title-color);
+  font-family: Ubuntu, sans-serif;
+  font-size: 18px;
+}
+
+#page-search-points .points-list span {
+  margin: 0 16px;
+  font-size: 14px;
+}
+
+@media (max-width: 1160px) {
+  #page-search-points {
+    padding: 0 30px;
+  }
+}
+
+@media (max-width: 760px) {
+  #page-search-points {
+    padding: 0 16px;
+  }
+
+  #page-search-points header {
+    margin-top: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  #page-search-points main {
+    margin: 32px auto;
+    padding: 32px 20px;
+  }
+
+  #page-search-points main h1 {
+    font-size: 28px;
+  }
+
+  #page-search-points .field-group,
+  #page-search-points .point-detail {
+    flex-direction: column;
+  }
+
+  #page-search-points .field + .field {
+    margin-left: 0;
+  }
+
+  #page-search-points .leaflet-container {
+    height: 280px;
+  }
+
+  #page-search-points .point-detail img {
+    width: 100%;
+  }
+
+  #page-search-points .points-list {
+    grid-template-columns: 1fr;
+  }
+}

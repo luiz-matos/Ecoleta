@@ -1,39 +1,25 @@
-import {
-  useEffect,
-  useState,
-  ChangeEvent,
-  FormEvent,
-  KeyboardEvent,
-} from "react"
+import { useEffect, useState, ChangeEvent, FormEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FiArrowLeft, FiCheckCircle } from "react-icons/fi"
 import { MapContainer, TileLayer, Marker } from "react-leaflet"
 import { LeafletMouseEvent } from "leaflet"
 
 import api from "../../services/api"
-import { fetchCities, fetchUfs, UF } from "../../services/ibge"
+import useItems from "../../hooks/useItems"
 import Dropzone from "../../components/Dropzone"
-import MapController, { MapView } from "../../components/MapController"
+import ItemsGrid from "../../components/ItemsGrid"
+import LocationSelect from "../../components/LocationSelect"
+import MapController from "../../components/MapController"
+import { DEFAULT_MAP_VIEW, MapView } from "../../components/MapController/mapView"
 import logo from "../../assets/logo.svg"
 import "./styles.css"
 
-interface Item {
-  id: number
-  title: string
-  image_url: string
-}
-
 const SUCCESS_SCREEN_MS = 2000
-
-// Centro do Brasil, usado até a geolocalização responder ou quando ela é negada
-const DEFAULT_MAP_VIEW: MapView = { center: [-14.235, -51.9253], zoom: 4 }
 
 const CreatePoint = () => {
   const navigate = useNavigate()
-  const [items, setItems] = useState<Item[]>([])
-  const [ufs, setUfs] = useState<UF[]>([])
+  const { items, itemsError } = useItems()
   const [selectedUF, setSelectedUF] = useState("0")
-  const [cities, setCities] = useState<string[]>([])
   const [selectedCity, setSelectedCity] = useState("0")
   const [selectedPosition, setSelectedPosition] = useState<
     [number, number] | null
@@ -49,37 +35,6 @@ const CreatePoint = () => {
   const [errorMessage, setErrorMessage] = useState("")
   const [isCreated, setIsCreated] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [itemsError, setItemsError] = useState(false)
-
-  useEffect(() => {
-    api
-      .get<Item[]>("/items")
-      .then((response) => setItems(response.data))
-      .catch((error) => {
-        console.error(error)
-        setItemsError(true)
-      })
-  }, [])
-
-  useEffect(() => {
-    fetchUfs().then(setUfs).catch(console.error)
-  }, [])
-
-  useEffect(() => {
-    if (selectedUF === "0") {
-      return
-    }
-    // Descarta a resposta de uma UF que já foi trocada
-    let ignore = false
-    fetchCities(selectedUF)
-      .then((cityNames) => {
-        if (!ignore) setCities(cityNames)
-      })
-      .catch(console.error)
-    return () => {
-      ignore = true
-    }
-  }, [selectedUF])
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -96,14 +51,9 @@ const CreatePoint = () => {
     return () => clearTimeout(timeout)
   }, [isCreated, navigate])
 
-  function handleSelectUF(event: ChangeEvent<HTMLSelectElement>) {
-    setSelectedUF(event.target.value)
-    setSelectedCity("0")
-    setCities([])
-  }
-
-  function handleSelectCity(event: ChangeEvent<HTMLSelectElement>) {
-    setSelectedCity(event.target.value)
+  function handleSelectLocation(uf: string, city: string) {
+    setSelectedUF(uf)
+    setSelectedCity(city)
   }
 
   function handleMapClick(event: LeafletMouseEvent) {
@@ -122,13 +72,6 @@ const CreatePoint = () => {
         ? current.filter((item) => item !== id)
         : [...current, id]
     )
-  }
-
-  function handleItemKeyDown(event: KeyboardEvent, id: number) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      handleSelectItem(id)
-    }
   }
 
   function validateForm() {
@@ -247,40 +190,11 @@ const CreatePoint = () => {
             />
             {selectedPosition && <Marker position={selectedPosition} />}
           </MapContainer>
-          <div className="field-group">
-            <div className="field">
-              <label htmlFor="uf">Estado (UF)</label>
-              <select
-                name="uf"
-                id="uf"
-                onChange={handleSelectUF}
-                value={selectedUF}
-              >
-                <option value="0">Selecione uma UF</option>
-                {ufs.map((uf) => (
-                  <option value={uf.initials} key={uf.id}>
-                    {uf.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="city">Cidade</label>
-              <select
-                name="city"
-                id="city"
-                onChange={handleSelectCity}
-                value={selectedCity}
-              >
-                <option value="0">Selecione uma cidade</option>
-                {cities.map((city) => (
-                  <option value={city} key={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <LocationSelect
+            uf={selectedUF}
+            city={selectedCity}
+            onChange={handleSelectLocation}
+          />
         </fieldset>
         <fieldset>
           <legend>
@@ -293,22 +207,11 @@ const CreatePoint = () => {
               página.
             </p>
           )}
-          <ul className="items-grid">
-            {items.map((item) => (
-              <li
-                key={item.id}
-                role="checkbox"
-                tabIndex={0}
-                aria-checked={selectedItems.includes(item.id)}
-                onClick={() => handleSelectItem(item.id)}
-                onKeyDown={(event) => handleItemKeyDown(event, item.id)}
-                className={selectedItems.includes(item.id) ? "selected" : ""}
-              >
-                <img src={item.image_url} alt="" />
-                <span>{item.title}</span>
-              </li>
-            ))}
-          </ul>
+          <ItemsGrid
+            items={items}
+            selectedItems={selectedItems}
+            onToggle={handleSelectItem}
+          />
         </fieldset>
         {errorMessage && <p className="form-error">{errorMessage}</p>}
         <button type="submit" disabled={isSubmitting}>
