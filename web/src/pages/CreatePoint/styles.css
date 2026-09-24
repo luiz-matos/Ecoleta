@@ -104,29 +104,19 @@
   margin-bottom: 24px;
 }
 
-#page-create-point form .field input[type="text"],
-#page-create-point form .field input[type="email"],
-#page-create-point form .field input[type="number"] {
+#page-create-point form .field input,
+#page-create-point form .field select {
   flex: 1;
   background: #f0f0f5;
   border-radius: 8px;
   border: 0;
   padding: 16px 24px;
   font-size: 16px;
-  color: #6c6c80;
+  color: var(--text-color);
 }
 
 #page-create-point form .field select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
-  flex: 1;
-  background: #f0f0f5;
-  border-radius: 8px;
-  border: 0;
-  padding: 16px 24px;
-  font-size: 16px;
-  color: #6c6c80;
 }
 
 #page-create-point form .field input::placeholder {
@@ -138,29 +128,8 @@
   margin-bottom: 8px;
 }
 
-#page-create-point form .field :disabled {
-  cursor: not-allowed;
-}
-
 #page-create-point form .field-group .field + .field {
   margin-left: 24px;
-}
-
-#page-create-point form .field-group input + input {
-  margin-left: 24px;
-}
-
-#page-create-point form .field-check {
-  flex-direction: row;
-  align-items: center;
-}
-
-#page-create-point form .field-check input[type="checkbox"] {
-  background: #f0f0f5;
-}
-
-#page-create-point form .field-check label {
-  margin: 0 0 0 8px;
 }
 
 #page-create-point form .leaflet-container {
@@ -239,7 +208,7 @@
 
 .items-grid li.selected {
   background: #e1faec;
-  border: 2px solid #34cb79;
+  border: 2px solid var(--primary-color);
 }
 
 @media (max-width: 1160px) {

@@ -1,6 +1,7 @@
 import path from "path"
+import type { Knex } from "knex"
 
-module.exports = {
+const config: Knex.Config = {
   client: "sqlite3",
   connection: {
     filename: path.resolve(__dirname, "src", "database", "database.sqlite"),
@@ -13,3 +14,5 @@ module.exports = {
   },
   useNullAsDefault: true,
 }
+
+export default config

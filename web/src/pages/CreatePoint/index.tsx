@@ -7,14 +7,15 @@ import {
 } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FiArrowLeft, FiCheckCircle } from "react-icons/fi"
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
+import { MapContainer, TileLayer, Marker } from "react-leaflet"
 import { LeafletMouseEvent } from "leaflet"
 
-import axios from "axios"
 import api from "../../services/api"
+import { fetchCities, fetchUfs, UF } from "../../services/ibge"
 import Dropzone from "../../components/Dropzone"
+import MapController, { MapView } from "../../components/MapController"
 import logo from "../../assets/logo.svg"
-import "./style.css"
+import "./styles.css"
 
 interface Item {
   id: number
@@ -22,43 +23,10 @@ interface Item {
   image_url: string
 }
 
-interface UF {
-  id: number
-  uf: string
-  name: string
-}
-
-interface IBGEUF {
-  id: number
-  nome: string
-  sigla: string
-}
-interface IBGECity {
-  nome: string
-}
-
-interface MapView {
-  center: [number, number]
-  zoom: number
-}
-
 const SUCCESS_SCREEN_MS = 2000
 
 // Centro do Brasil, usado até a geolocalização responder ou quando ela é negada
 const DEFAULT_MAP_VIEW: MapView = { center: [-14.235, -51.9253], zoom: 4 }
-
-interface MapControllerProps {
-  view: MapView
-  onClick: (event: LeafletMouseEvent) => void
-}
-
-const MapController = ({ view, onClick }: MapControllerProps) => {
-  const map = useMapEvents({ click: onClick })
-  useEffect(() => {
-    map.setView(view.center, view.zoom)
-  }, [map, view])
-  return null
-}
 
 const CreatePoint = () => {
   const navigate = useNavigate()
@@ -71,7 +39,7 @@ const CreatePoint = () => {
     [number, number] | null
   >(null)
   const [mapView, setMapView] = useState<MapView>(DEFAULT_MAP_VIEW)
-  const [formData, setFormData] = useState({
+  const [formFields, setFormFields] = useState({
     name: "",
     email: "",
     whatsapp: "",
@@ -83,52 +51,26 @@ const CreatePoint = () => {
 
   useEffect(() => {
     api
-      .get("/items")
-      .then((response) => {
-        setItems(response.data)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
+      .get<Item[]>("/items")
+      .then((response) => setItems(response.data))
+      .catch(console.error)
   }, [])
 
   useEffect(() => {
-    axios
-      .get<IBGEUF[]>(
-        "https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome"
-      )
-      .then((response) => {
-        const ufInitials = response.data.map((initial) => {
-          return {
-            id: initial.id,
-            name: initial.nome,
-            uf: initial.sigla,
-          }
-        })
-        setUfs(ufInitials)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
+    fetchUfs().then(setUfs).catch(console.error)
   }, [])
 
   useEffect(() => {
     if (selectedUF === "0") {
       return
     }
+    // Descarta a resposta de uma UF que já foi trocada
     let ignore = false
-    axios
-      .get<IBGECity[]>(
-        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedUF}/municipios?orderBy=nome`
-      )
-      .then((response) => {
-        if (ignore) return
-        const cityNames = response.data.map((city) => city.nome)
-        setCities(cityNames)
+    fetchCities(selectedUF)
+      .then((cityNames) => {
+        if (!ignore) setCities(cityNames)
       })
-      .catch((error) => {
-        console.log(error)
-      })
+      .catch(console.error)
     return () => {
       ignore = true
     }
@@ -149,33 +91,38 @@ const CreatePoint = () => {
     return () => clearTimeout(timeout)
   }, [isCreated, navigate])
 
-  function hundleSelectUF(event: ChangeEvent<HTMLSelectElement>) {
+  function handleSelectUF(event: ChangeEvent<HTMLSelectElement>) {
     setSelectedUF(event.target.value)
     setSelectedCity("0")
     setCities([])
   }
 
-  function hundleSelectCity(event: ChangeEvent<HTMLSelectElement>) {
+  function handleSelectCity(event: ChangeEvent<HTMLSelectElement>) {
     setSelectedCity(event.target.value)
   }
 
-  function hundleMapClick(event: LeafletMouseEvent) {
+  function handleMapClick(event: LeafletMouseEvent) {
     const { lat, lng } = event.latlng
     setSelectedPosition([lat, lng])
   }
 
-  function hundleInputChange(event: ChangeEvent<HTMLInputElement>) {
+  function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const { value, name } = event.target
-    setFormData({ ...formData, [name]: value })
+    setFormFields((current) => ({ ...current, [name]: value }))
   }
 
-  function hundleSelectItem(id: number) {
-    const alreadySelected = selectedItems.findIndex((item) => item === id)
-    if (alreadySelected >= 0) {
-      const filteredItems = selectedItems.filter((item) => item !== id)
-      setSelectedItems(filteredItems)
-    } else {
-      setSelectedItems([...selectedItems, id])
+  function handleSelectItem(id: number) {
+    setSelectedItems((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id]
+    )
+  }
+
+  function handleItemKeyDown(event: KeyboardEvent, id: number) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      handleSelectItem(id)
     }
   }
 
@@ -189,42 +136,30 @@ const CreatePoint = () => {
     return ""
   }
 
-  function hundleItemKeyDown(event: KeyboardEvent, id: number) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault()
-      hundleSelectItem(id)
-    }
-  }
-
-  function hundleSubmit(event: FormEvent) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault()
     const validationError = validateForm()
     setErrorMessage(validationError)
     if (validationError || !selectedPosition || !selectedFile) {
       return
     }
-    const { name, email, whatsapp } = formData
-    const uf = selectedUF
-    const city = selectedCity
     const [latitude, longitude] = selectedPosition
-    const items = selectedItems
+    const fields = {
+      ...formFields,
+      uf: selectedUF,
+      city: selectedCity,
+      latitude: String(latitude),
+      longitude: String(longitude),
+      items: selectedItems.join(","),
+    }
     const data = new FormData()
-    data.append("name", name)
-    data.append("email", email)
-    data.append("whatsapp", whatsapp)
-    data.append("uf", uf)
-    data.append("city", city)
-    data.append("latitude", String(latitude))
-    data.append("longitude", String(longitude))
-    data.append("items", items.join(","))
+    Object.entries(fields).forEach(([key, value]) => data.append(key, value))
     data.append("image", selectedFile)
     api
       .post("/points", data)
-      .then(() => {
-        setIsCreated(true)
-      })
+      .then(() => setIsCreated(true))
       .catch((error) => {
-        console.log(error)
+        console.error(error)
         setErrorMessage(
           error.response?.data?.error ??
             "Não foi possível cadastrar o ponto. Tente novamente."
@@ -247,7 +182,7 @@ const CreatePoint = () => {
           Voltar para home
         </Link>
       </header>
-      <form onSubmit={hundleSubmit}>
+      <form onSubmit={handleSubmit}>
         <h1>
           Cadastro do <br /> ponto de coleta
         </h1>
@@ -263,7 +198,7 @@ const CreatePoint = () => {
               name="name"
               id="name"
               required
-              onChange={hundleInputChange}
+              onChange={handleInputChange}
             />
           </div>
           <div className="field-group">
@@ -274,7 +209,7 @@ const CreatePoint = () => {
                 name="email"
                 id="email"
                 required
-                onChange={hundleInputChange}
+                onChange={handleInputChange}
               />
             </div>
             <div className="field">
@@ -284,7 +219,7 @@ const CreatePoint = () => {
                 name="whatsapp"
                 id="whatsapp"
                 required
-                onChange={hundleInputChange}
+                onChange={handleInputChange}
               />
             </div>
           </div>
@@ -295,9 +230,9 @@ const CreatePoint = () => {
             <span>Selecione o endereço no mapa</span>
           </legend>
           <MapContainer center={mapView.center} zoom={mapView.zoom}>
-            <MapController view={mapView} onClick={hundleMapClick} />
+            <MapController view={mapView} onClick={handleMapClick} />
             <TileLayer
-              attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+              attribution='&amp;copy <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             {selectedPosition && <Marker position={selectedPosition} />}
@@ -308,12 +243,12 @@ const CreatePoint = () => {
               <select
                 name="uf"
                 id="uf"
-                onChange={hundleSelectUF}
+                onChange={handleSelectUF}
                 value={selectedUF}
               >
                 <option value="0">Selecione uma UF</option>
                 {ufs.map((uf) => (
-                  <option value={uf.uf} key={uf.id}>
+                  <option value={uf.initials} key={uf.id}>
                     {uf.name}
                   </option>
                 ))}
@@ -324,7 +259,7 @@ const CreatePoint = () => {
               <select
                 name="city"
                 id="city"
-                onChange={hundleSelectCity}
+                onChange={handleSelectCity}
                 value={selectedCity}
               >
                 <option value="0">Selecione uma cidade</option>
@@ -339,8 +274,8 @@ const CreatePoint = () => {
         </fieldset>
         <fieldset>
           <legend>
-            <h2>Ítens de coleta</h2>
-            <span>Selecione um ou mais ítens de coleta</span>
+            <h2>Itens de coleta</h2>
+            <span>Selecione um ou mais itens de coleta</span>
           </legend>
           <ul className="items-grid">
             {items.map((item) => (
@@ -349,8 +284,8 @@ const CreatePoint = () => {
                 role="checkbox"
                 tabIndex={0}
                 aria-checked={selectedItems.includes(item.id)}
-                onClick={() => hundleSelectItem(item.id)}
-                onKeyDown={(event) => hundleItemKeyDown(event, item.id)}
+                onClick={() => handleSelectItem(item.id)}
+                onKeyDown={(event) => handleItemKeyDown(event, item.id)}
                 className={selectedItems.includes(item.id) ? "selected" : ""}
               >
                 <img src={item.image_url} alt="" />

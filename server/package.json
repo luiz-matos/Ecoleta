@@ -1,15 +1,13 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "start": "tsx watch src/server.ts",
     "typecheck": "tsc",
     "knex:migrate": "tsx node_modules/knex/bin/cli.js --knexfile knexfile.ts migrate:latest",
     "knex:seed": "tsx node_modules/knex/bin/cli.js --knexfile knexfile.ts seed:run"
   },
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.6",
