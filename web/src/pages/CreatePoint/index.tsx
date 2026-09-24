@@ -1,4 +1,10 @@
-import { useEffect, useState, ChangeEvent, FormEvent } from "react"
+import {
+  useEffect,
+  useState,
+  ChangeEvent,
+  FormEvent,
+  KeyboardEvent,
+} from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { FiArrowLeft, FiCheckCircle } from "react-icons/fi"
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
@@ -183,6 +189,13 @@ const CreatePoint = () => {
     return ""
   }
 
+  function hundleItemKeyDown(event: KeyboardEvent, id: number) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      hundleSelectItem(id)
+    }
+  }
+
   function hundleSubmit(event: FormEvent) {
     event.preventDefault()
     const validationError = validateForm()
@@ -333,10 +346,14 @@ const CreatePoint = () => {
             {items.map((item) => (
               <li
                 key={item.id}
+                role="checkbox"
+                tabIndex={0}
+                aria-checked={selectedItems.includes(item.id)}
                 onClick={() => hundleSelectItem(item.id)}
+                onKeyDown={(event) => hundleItemKeyDown(event, item.id)}
                 className={selectedItems.includes(item.id) ? "selected" : ""}
               >
-                <img src={item.image_url} alt={item.title} />
+                <img src={item.image_url} alt="" />
                 <span>{item.title}</span>
               </li>
             ))}
