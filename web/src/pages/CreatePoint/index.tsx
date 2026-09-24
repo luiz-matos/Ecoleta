@@ -1,6 +1,6 @@
 import { useEffect, useState, ChangeEvent, FormEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { FiArrowLeft } from "react-icons/fi"
+import { FiArrowLeft, FiCheckCircle } from "react-icons/fi"
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet"
 import { LeafletMouseEvent } from "leaflet"
 
@@ -35,6 +35,8 @@ interface MapView {
   center: [number, number]
   zoom: number
 }
+
+const SUCCESS_SCREEN_MS = 2000
 
 // Centro do Brasil, usado até a geolocalização responder ou quando ela é negada
 const DEFAULT_MAP_VIEW: MapView = { center: [-14.235, -51.9253], zoom: 4 }
@@ -71,6 +73,7 @@ const CreatePoint = () => {
   const [selectedItems, setSelectedItems] = useState<number[]>([])
   const [selectedFile, setSelectedFile] = useState<File>()
   const [errorMessage, setErrorMessage] = useState("")
+  const [isCreated, setIsCreated] = useState(false)
 
   useEffect(() => {
     api
@@ -131,6 +134,14 @@ const CreatePoint = () => {
       setMapView({ center: [latitude, longitude], zoom: 15 })
     })
   }, [])
+
+  useEffect(() => {
+    if (!isCreated) {
+      return
+    }
+    const timeout = setTimeout(() => navigate("/"), SUCCESS_SCREEN_MS)
+    return () => clearTimeout(timeout)
+  }, [isCreated, navigate])
 
   function hundleSelectUF(event: ChangeEvent<HTMLSelectElement>) {
     setSelectedUF(event.target.value)
@@ -197,8 +208,7 @@ const CreatePoint = () => {
     api
       .post("/points", data)
       .then(() => {
-        alert("Ponto criado")
-        navigate("/")
+        setIsCreated(true)
       })
       .catch((error) => {
         console.log(error)
@@ -211,6 +221,12 @@ const CreatePoint = () => {
 
   return (
     <div id="page-create-point">
+      {isCreated && (
+        <div className="success-screen" role="status">
+          <FiCheckCircle />
+          <strong>Cadastro concluído!</strong>
+        </div>
+      )}
       <header>
         <img src={logo} alt="Ecoleta" />
         <Link to="/">

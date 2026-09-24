@@ -5,6 +5,31 @@
   margin: 0 auto;
 }
 
+#page-create-point .success-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(14, 10, 20, 0.9);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#page-create-point .success-screen svg {
+  width: 48px;
+  height: 48px;
+  color: var(--primary-color);
+}
+
+#page-create-point .success-screen strong {
+  margin-top: 24px;
+  font-family: Ubuntu, sans-serif;
+  font-size: 36px;
+  color: #fff;
+}
+
 #page-create-point header {
   margin-top: 48px;
 
