@@ -139,6 +139,11 @@
   margin-bottom: 24px;
 }
 
+#page-create-point form .load-error {
+  color: #e83f5b;
+  margin-bottom: 16px;
+}
+
 #page-create-point form .form-error {
   margin-top: 40px;
   color: #e83f5b;
@@ -166,6 +171,11 @@
 
 #page-create-point form button:hover {
   background: #2fb86e;
+}
+
+#page-create-point form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .items-grid {

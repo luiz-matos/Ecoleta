@@ -48,12 +48,17 @@ const CreatePoint = () => {
   const [selectedFile, setSelectedFile] = useState<File>()
   const [errorMessage, setErrorMessage] = useState("")
   const [isCreated, setIsCreated] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [itemsError, setItemsError] = useState(false)
 
   useEffect(() => {
     api
       .get<Item[]>("/items")
       .then((response) => setItems(response.data))
-      .catch(console.error)
+      .catch((error) => {
+        console.error(error)
+        setItemsError(true)
+      })
   }, [])
 
   useEffect(() => {
@@ -138,6 +143,9 @@ const CreatePoint = () => {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
+    if (isSubmitting) {
+      return
+    }
     const validationError = validateForm()
     setErrorMessage(validationError)
     if (validationError || !selectedPosition || !selectedFile) {
@@ -155,6 +163,7 @@ const CreatePoint = () => {
     const data = new FormData()
     Object.entries(fields).forEach(([key, value]) => data.append(key, value))
     data.append("image", selectedFile)
+    setIsSubmitting(true)
     api
       .post("/points", data)
       .then(() => setIsCreated(true))
@@ -164,6 +173,7 @@ const CreatePoint = () => {
           error.response?.data?.error ??
             "Não foi possível cadastrar o ponto. Tente novamente."
         )
+        setIsSubmitting(false)
       })
   }
 
@@ -277,6 +287,12 @@ const CreatePoint = () => {
             <h2>Itens de coleta</h2>
             <span>Selecione um ou mais itens de coleta</span>
           </legend>
+          {itemsError && (
+            <p className="load-error">
+              Não foi possível carregar os itens de coleta. Recarregue a
+              página.
+            </p>
+          )}
           <ul className="items-grid">
             {items.map((item) => (
               <li
@@ -295,7 +311,9 @@ const CreatePoint = () => {
           </ul>
         </fieldset>
         {errorMessage && <p className="form-error">{errorMessage}</p>}
-        <button type="submit">Cadastrar ponto de coleta</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Cadastrando..." : "Cadastrar ponto de coleta"}
+        </button>
       </form>
     </div>
   )
