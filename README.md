@@ -1,6 +1,19 @@
-# Ecoleta
+# ♻️ Ecoleta
 
-Cadastro e busca de pontos de coleta de resíduos, com API em Node, Express e SQLite e front-end em React com TypeScript e mapa do Leaflet.
+<div align="center">
+  <img src="https://img.shields.io/badge/Express-5-black?style=for-the-badge&logo=express" alt="Express 5">
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript 6">
+  <img src="https://img.shields.io/badge/SQLite-Banco-003B57?style=for-the-badge&logo=sqlite" alt="SQLite Banco">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19">
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite 8">
+  <img src="https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet&logoColor=white" alt="Leaflet 1.9">
+  <img src="https://img.shields.io/badge/Vitest-5-6E9F18?style=for-the-badge&logo=vitest&logoColor=white" alt="Vitest 5">
+  <img src="https://img.shields.io/badge/Licen%C3%A7a-MIT-yellow?style=for-the-badge" alt="Licença MIT">
+</div>
+
+<br>
+
+> 🎯 **Cadastro e busca de pontos de coleta de resíduos**, com API em Node, Express e SQLite e front-end em React com TypeScript e mapa do Leaflet.
 
 Fiz em 2020 durante a Next Level Week 1 da Rocketseat. Em 2026 voltei a ele: atualizei as dependências, que não instalavam mais, troquei o Create React App pelo Vite, corrigi os bugs, adicionei o upload da imagem do ponto, a página de busca e os testes automatizados, e organizei o código. A pasta do app mobile, que nunca passou do template do Expo, saiu do repositório.
 
@@ -8,11 +21,19 @@ Fiz em 2020 durante a Next Level Week 1 da Rocketseat. Em 2026 voltei a ele: atu
   <img alt="Cadastro de um ponto com imagem, localização e itens, seguido da busca pelos pontos de Brasília e do detalhe do ponto cadastrado" src="demo/ecoleta.gif" width="900" />
 </p>
 
-## Como rodar
+## 📋 Índice
+
+- [🚀 Como rodar](#-como-rodar)
+- [✨ Recursos](#-recursos)
+- [🧩 Como o código funciona](#-como-o-código-funciona)
+- [🔄 Revisitando o projeto em 2026](#-revisitando-o-projeto-em-2026)
+- [📄 Licença](#-licença)
+
+## 🚀 Como rodar
 
 Precisa de Node 20.19, 22.12 ou mais novo, e do Yarn. São dois projetos, cada um no seu terminal.
 
-### Servidor
+### 🔧 Servidor
 
 ```bash
 cd server
@@ -38,7 +59,7 @@ yarn start
 
 A API fica em http://localhost:3333. A porta pode ser trocada pela variável `PORT`.
 
-### Web
+### 🌐 Web
 
 ```bash
 cd web
@@ -65,7 +86,7 @@ Outros comandos:
 | web | `yarn preview` | Serve a pasta `dist` localmente |
 | web | `yarn lint` | Roda o ESLint |
 
-## Recursos
+## ✨ Recursos
 
 - Cadastro do ponto com nome, e-mail, WhatsApp, imagem, localização no mapa, UF, cidade e itens coletados
 - Busca por UF, cidade e itens, com os pontos no mapa e em cards, e detalhe com links para WhatsApp e e-mail
@@ -77,7 +98,7 @@ Outros comandos:
 - Itens de coleta selecionáveis pelo teclado (Tab, Espaço e Enter)
 - Layout adaptado a telas pequenas
 
-### API
+### 🔌 API
 
 | Rota | O que faz |
 |---|---|
@@ -86,7 +107,7 @@ Outros comandos:
 | `GET /points/:id` | Ponto e títulos dos itens que ele coleta. 404 se não existir |
 | `POST /points` | Cadastra um ponto (multipart, imagem no campo `image`, itens separados por vírgula). 201 com o ponto criado, 400 com a lista de erros |
 
-## Como o código funciona
+## 🧩 Como o código funciona
 
 ```
 server/
@@ -127,11 +148,11 @@ web/
 - **Busca.** A página chama `GET /points` quando UF e cidade estão escolhidas, e de novo a cada item marcado. O resultado guarda a combinação de filtros que o gerou, e só aparece enquanto ela for a atual.
 - **Mapa.** O `MapContainer` do react-leaflet só usa `center` e `zoom` na montagem. O `MapController` reposiciona o mapa quando a view muda: no cadastro, quando a geolocalização responde; na busca, enquadrando todos os pontos encontrados.
 
-## Revisitando o projeto em 2026
+## 🔄 Revisitando o projeto em 2026
 
 Seis anos depois, nenhuma das partes instalava. O `sqlite3` 4.2 não tem mais binário para baixar e a compilação falha no Node 24. O `react-scripts` 3.4 usa o webpack 4, que não roda nas versões atuais do Node. Depois de atualizar, a revisão encontrou dois bugs que derrubavam o servidor e um formulário que aceitava qualquer coisa.
 
-### Bugs corrigidos
+### 🐛 Bugs corrigidos
 
 | Bug | Causa | Correção |
 |---|---|---|
@@ -148,7 +169,7 @@ Seis anos depois, nenhuma das partes instalava. O `sqlite3` 4.2 não tem mais bi
 | Clique duplo em "Cadastrar" criava dois pontos | Nada impedia um segundo envio | `isSubmitting` desabilita o botão até a resposta |
 | Lista de itens vazia sem aviso com a API fora do ar | O erro só ia para o console | Mensagem pedindo para recarregar a página |
 
-### Decisões técnicas
+### 🧠 Decisões técnicas
 
 **Atualização das dependências**
 
@@ -178,6 +199,16 @@ As rotas `GET /points` e `GET /points/:id` foram feitas para o app mobile, que n
 - **Código compartilhado entre as páginas.** Itens, UFs e cidades e a grade de itens viraram hooks e componentes usados pelo cadastro e pela busca.
 - **Mesmo resultado.** Conferi a organização com um roteiro de 25 verificações da API e 8 cenários do formulário, rodados antes e depois, com saídas idênticas. Esses cenários viraram os testes que estão hoje no repositório.
 
-## Licença
+## 📄 Licença
 
 MIT. Veja o arquivo [LICENSE](LICENSE).
+
+---
+
+<div align="center">
+  <p>Desenvolvido por <strong>Luiz Matos</strong></p>
+  <p>
+    <a href="https://github.com/luiz-matos">GitHub</a> •
+    <a href="https://www.linkedin.com/in/luizeduardomatos/">LinkedIn</a>
+  </p>
+</div>
